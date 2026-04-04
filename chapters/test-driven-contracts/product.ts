@@ -1,4 +1,18 @@
-import { Schema } from "effect";
+import { BigDecimal, Effect, Predicate, Schema } from "effect";
+
+export const DefaultPrice = Effect.succeed({
+  currency: "usd" as const,
+  amount: BigDecimal.unsafeFromNumber(0),
+});
+
+export const Price = Schema.Struct({
+  currency: Schema.Literal("usd", "cad", "inr"),
+  amount: Schema.BigDecimal,
+}).pipe(
+  Schema.annotations({
+    decodingFallback: () => DefaultPrice,
+  })
+);
 
 /**
  * Runtime contract for a product payload at version `1.0.0`.
@@ -10,6 +24,7 @@ import { Schema } from "effect";
 export const Product = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
+  price: Price,
 });
 
 /**
@@ -22,3 +37,18 @@ export const Product = Schema.Struct({
 export const fromUnknown = (
   product: Partial<typeof Product.Encoded>
 ): typeof Product.Type => Schema.decodeUnknownSync(Product)(product);
+
+/**
+ * Returns `true` when a product has a usable price for domain logic.
+ *
+ * This predicate treats a price as valid only when the `price` field is
+ * present and its amount is zero or greater. It gives the rest of the domain a
+ * small, intention-revealing API for asking whether pricing data is available
+ * without repeating `BigDecimal` checks at every call site.
+ */
+export const hasPrice = (product: typeof Product.Type): boolean =>
+  Predicate.isNotUndefined(product.price) &&
+  BigDecimal.greaterThanOrEqualTo(
+    product.price.amount,
+    BigDecimal.unsafeFromNumber(0)
+  );
