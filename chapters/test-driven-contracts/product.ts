@@ -1,16 +1,18 @@
-import { BigDecimal, Effect, Predicate, Schema } from "effect";
+import { BigDecimal, Predicate, Schema } from "effect";
 
-export const DefaultPrice = Effect.succeed({
+export const DefaultPrice = {
   currency: "usd" as const,
   amount: BigDecimal.unsafeFromNumber(0),
-});
+};
 
 export const Price = Schema.Struct({
   currency: Schema.Literal("usd", "cad", "inr"),
   amount: Schema.BigDecimal,
 }).pipe(
-  Schema.annotations({
-    decodingFallback: () => DefaultPrice,
+  Schema.optional,
+  Schema.withDefaults({
+    constructor: () => DefaultPrice,
+    decoding: () => DefaultPrice,
   })
 );
 
