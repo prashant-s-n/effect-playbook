@@ -19,5 +19,6 @@ export const Product = Schema.Struct({
  * product-shaped payload satisfies the `Product` contract. The function throws
  * if the provided value is missing required fields or contains invalid data.
  */
-export const fromUnknown = (product: Partial<typeof Product.Encoded>) =>
-  Schema.decodeUnknownSync(Product)(product);
+export const fromUnknown = (
+  product: Partial<typeof Product.Encoded>
+): typeof Product.Type => Schema.decodeUnknownSync(Product)(product);
