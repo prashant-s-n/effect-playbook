@@ -1,1 +1,1 @@
-export { Product, fromUnknown } from "./product";
+export { Product, fromUnknown, hasMediaAssets } from "./product";

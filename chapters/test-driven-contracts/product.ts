@@ -1,5 +1,10 @@
 import { BigDecimal, Predicate, Schema } from "effect";
 
+export const MediaAssets = Schema.Struct({
+  images: Schema.Array(Schema.URL).pipe(Schema.optional),
+  videos: Schema.Array(Schema.URL).pipe(Schema.optional),
+});
+
 export const DefaultPrice = {
   currency: "usd" as const,
   amount: BigDecimal.unsafeFromNumber(0),
@@ -27,6 +32,7 @@ export const Product = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
   price: Price,
+  mediaAssets: MediaAssets.pipe(Schema.optional),
 });
 
 /**
@@ -54,3 +60,12 @@ export const hasPrice = (product: typeof Product.Type): boolean =>
     product.price.amount,
     BigDecimal.unsafeFromNumber(0)
   );
+
+/**
+ * Returns `true` when a product includes media assets with both image and
+ * video collections available.
+ */
+export const hasMediaAssets = (product: typeof Product.Type): boolean =>
+  Predicate.isNotUndefined(product.mediaAssets) &&
+  Predicate.isNotUndefined(product.mediaAssets.images) &&
+  Predicate.isNotUndefined(product.mediaAssets.videos);
