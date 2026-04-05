@@ -1,14 +1,10 @@
 import { BigDecimal, Predicate, Schema } from "effect";
 
-export const DefaultMediaAssets = {
-  images: [new URL("https://picsum.photos/id/237/200/300")],
-  videos: [new URL("https://samplelib.com/mp4/sample-5s.mp4")],
-};
-
-export const MediaAssets = Schema.Struct({
-  images: Schema.Array(Schema.URL),
-  videos: Schema.Array(Schema.URL),
+export const Shipping = Schema.Struct({
+  method: Schema.Literal("standard", "express"),
+  etaDays: Schema.Number,
 });
+
 
 export const DefaultPrice = {
   currency: "usd" as const,
@@ -37,13 +33,7 @@ export const Product = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
   price: Price,
-  mediaAssets: MediaAssets.pipe(
-    Schema.optional,
-    Schema.withDefaults({
-      constructor: () => DefaultMediaAssets,
-      decoding: () => DefaultMediaAssets,
-    })
-  ),
+  shipping: Schema.optional(Shipping),
 });
 
 /**
@@ -73,8 +63,21 @@ export const hasPrice = (product: typeof Product.Type): boolean =>
   );
 
 /**
- * Returns `true` when a product includes at least one media asset.
+ * Returns `true` when a product has valid shipping data.
+ *
+ * This predicate returns `true` if shipping information is entirely absent
+ * (treating it as a valid state for products that don't require shipping details)
+ * or if it is present and contains all required fields (`method` and `etaDays`).
  */
-export const hasMediaAssets = (product: typeof Product.Type): boolean =>
-  Predicate.isNotUndefined(product.mediaAssets) &&
-  (product.mediaAssets.images.length > 0 || product.mediaAssets.videos.length > 0);
+export const hasShipping = (product: typeof Product.Type): boolean => {
+  if (!product.shipping) {
+    return true;
+  }
+
+  return (
+    Predicate.isNotUndefined(product.shipping.method) &&
+    Predicate.isNotUndefined(product.shipping.etaDays)
+  );
+};
+
+  

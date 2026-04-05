@@ -22,22 +22,9 @@ export const products: ProductCase[] = [
         amount: "12",
         currency: "usd",
       },
-    },
-  },
-  {
-    label: "a product with media assets",
-    payload: {
-      id: "4e4ed9d8-cd46-4a66-aaf5-bfcf0fb9d64f",
-      name: "Camp Mug",
-      mediaAssets: {
-        images: [
-          "https://picsum.photos/id/237/200/300",
-          "https://picsum.photos/seed/camp-mug/400/300",
-        ],
-        videos: [
-          "https://samplelib.com/mp4/sample-5s.mp4",
-          "https://samplelib.com/mp4/sample-10s.mp4",
-        ],
+      shipping: {
+        method: "express",
+        etaDays: 2,
       },
     },
   },
