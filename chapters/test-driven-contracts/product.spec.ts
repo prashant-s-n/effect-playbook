@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { fromUnknown } from ".";
+import { from } from ".";
 import { products } from "./fixture";
 import { hasMediaAssets, hasPrice } from "./product";
 
 describe("Product", () => {
   describe("decode", () => {
-    test.each(products)("should decode %s", ({ payload }) => {
-      const product = fromUnknown(payload);
+    test.each(products)("should decode $label", ({ payload }) => {
+      const product = from(payload);
 
-      expect(() => product).not.toThrow();
       expect(hasPrice(product)).toBe(true);
-      expect(hasMediaAssets(product)).toBe(Boolean(payload.mediaAssets));
+      expect(hasMediaAssets(product)).toBe(true);
+      expect(product.mediaAssets).toBeDefined();
     });
   });
 });

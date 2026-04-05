@@ -1,8 +1,13 @@
 import { BigDecimal, Predicate, Schema } from "effect";
 
+export const DefaultMediaAssets = {
+  images: [new URL("https://picsum.photos/id/237/200/300")],
+  videos: [new URL("https://samplelib.com/mp4/sample-5s.mp4")],
+};
+
 export const MediaAssets = Schema.Struct({
-  images: Schema.Array(Schema.URL).pipe(Schema.optional),
-  videos: Schema.Array(Schema.URL).pipe(Schema.optional),
+  images: Schema.Array(Schema.URL),
+  videos: Schema.Array(Schema.URL),
 });
 
 export const DefaultPrice = {
@@ -32,7 +37,13 @@ export const Product = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
   price: Price,
-  mediaAssets: MediaAssets.pipe(Schema.optional),
+  mediaAssets: MediaAssets.pipe(
+    Schema.optional,
+    Schema.withDefaults({
+      constructor: () => DefaultMediaAssets,
+      decoding: () => DefaultMediaAssets,
+    })
+  ),
 });
 
 /**
@@ -42,7 +53,7 @@ export const Product = Schema.Struct({
  * product-shaped payload satisfies the `Product` contract. The function throws
  * if the provided value is missing required fields or contains invalid data.
  */
-export const fromUnknown = (
+export const from = (
   product: Partial<typeof Product.Encoded>
 ): typeof Product.Type => Schema.decodeUnknownSync(Product)(product);
 
@@ -62,10 +73,8 @@ export const hasPrice = (product: typeof Product.Type): boolean =>
   );
 
 /**
- * Returns `true` when a product includes media assets with both image and
- * video collections available.
+ * Returns `true` when a product includes at least one media asset.
  */
 export const hasMediaAssets = (product: typeof Product.Type): boolean =>
   Predicate.isNotUndefined(product.mediaAssets) &&
-  Predicate.isNotUndefined(product.mediaAssets.images) &&
-  Predicate.isNotUndefined(product.mediaAssets.videos);
+  (product.mediaAssets.images.length > 0 || product.mediaAssets.videos.length > 0);
