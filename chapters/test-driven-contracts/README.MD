@@ -4,12 +4,14 @@ This chapter shows how to treat an Effect `Schema` as a runtime contract for
 data entering your system, and how to evolve that contract without silently
 breaking older payloads.
 
-The current example models a minimal `Product`:
+The current example models a `Product` with pricing and optional shipping:
 
 ```ts
 export const Product = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
+  price: Price,
+  shipping: Schema.optional(Shipping),
 });
 ```
 
@@ -76,35 +78,25 @@ export const hasPrice = (product: typeof Product.Type): boolean =>
   );
 ```
 
-### Optional Media With Fallback Assets
+### Optional Shipping
 
-The same chapter also evolves `Product` with optional media assets. If media is
-missing, decoding falls back to generic image and video files:
+The same chapter also evolves `Product` with optional shipping details. If
+shipping is missing, the decoder still accepts the payload and the domain
+helper treats the absence as valid for products that do not need shipping:
 
 ```ts
 import { Predicate, Schema } from "effect";
 
-export const DefaultMediaAssets = {
-  images: [new URL("https://picsum.photos/id/237/200/300")],
-  videos: [new URL("https://samplelib.com/mp4/sample-5s.mp4")],
-};
-
-export const MediaAssets = Schema.Struct({
-  images: Schema.Array(Schema.URL),
-  videos: Schema.Array(Schema.URL),
+export const Shipping = Schema.Struct({
+  method: Schema.Literal("standard", "express"),
+  etaDays: Schema.Number,
 });
 
 export const Product = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
   price: Price,
-  mediaAssets: MediaAssets.pipe(
-    Schema.optional,
-    Schema.withDefaults({
-      constructor: () => DefaultMediaAssets,
-      decoding: () => DefaultMediaAssets,
-    })
-  ),
+  shipping: Schema.optional(Shipping),
 });
 ```
 
@@ -112,10 +104,16 @@ The domain utility answers a business question rather than exposing the schema
 shape directly:
 
 ```ts
-export const hasMediaAssets = (product: typeof Product.Type): boolean =>
-  Predicate.isNotUndefined(product.mediaAssets) &&
-  (product.mediaAssets.images.length > 0 ||
-    product.mediaAssets.videos.length > 0);
+export const hasShipping = (product: typeof Product.Type): boolean => {
+  if (!product.shipping) {
+    return true;
+  }
+
+  return (
+    Predicate.isNotUndefined(product.shipping.method) &&
+    Predicate.isNotUndefined(product.shipping.etaDays)
+  );
+};
 ```
 
 ### Contract Tests
@@ -125,14 +123,12 @@ fixture-driven contract tests around schema evolution:
 
 ```ts
 describe("Product", () => {
-  describe("decode", () => {
+  describe("from", () => {
     test.each(products)("should decode $label", ({ payload }) => {
       const product = from(payload);
 
-      expect(product.id).toBe(payload.id);
-      expect(product.name).toBe(payload.name);
       expect(hasPrice(product)).toBe(true);
-      expect(hasMediaAssets(product)).toBe(true);
+      expect(hasShipping(product)).toBe(true);
     });
   });
 });
