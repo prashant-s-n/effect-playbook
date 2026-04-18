@@ -48,14 +48,14 @@ export const from = (
 ): typeof Product.Type => Schema.decodeUnknownSync(Product)(product);
 
 /**
- * Returns `true` when a product has a usable price for domain logic.
+ * Returns `true` when a product has pricing data that the domain can use.
  *
- * This predicate treats a price as valid only when the `price` field is
+ * This predicate treats pricing as usable only when the `price` field is
  * present and its amount is zero or greater. It gives the rest of the domain a
  * small, intention-revealing API for asking whether pricing data is available
  * without repeating `BigDecimal` checks at every call site.
  */
-export const hasPrice = (product: typeof Product.Type): boolean =>
+export const hasPricing = (product: typeof Product.Type): boolean =>
   Predicate.isNotUndefined(product.price) &&
   BigDecimal.greaterThanOrEqualTo(
     product.price.amount,
@@ -63,7 +63,7 @@ export const hasPrice = (product: typeof Product.Type): boolean =>
   );
 
 /**
- * Returns `true` when a product has valid shipping data.
+ * Returns `true` when a product has shipping data that the domain can use.
  *
  * This predicate returns `true` if shipping information is entirely absent
  * (treating it as a valid state for products that don't require shipping details)

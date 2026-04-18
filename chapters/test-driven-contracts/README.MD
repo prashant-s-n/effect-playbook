@@ -70,7 +70,7 @@ That lets the domain ask a meaningful question without duplicating validation
 logic:
 
 ```ts
-export const hasPrice = (product: typeof Product.Type): boolean =>
+export const hasPricing = (product: typeof Product.Type): boolean =>
   Predicate.isNotUndefined(product.price) &&
   BigDecimal.greaterThanOrEqualTo(
     product.price.amount,
@@ -127,7 +127,7 @@ describe("Product", () => {
     test.each(products)("should decode $label", ({ payload }) => {
       const product = from(payload);
 
-      expect(hasPrice(product)).toBe(true);
+      expect(hasPricing(product)).toBe(true);
       expect(hasShipping(product)).toBe(true);
     });
   });
