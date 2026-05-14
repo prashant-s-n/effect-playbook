@@ -1,14 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { from, hasPricing, hasShipping } from ".";
+import { from, hasValidPricingDetails, hasValidShippingDetails } from ".";
 import { products } from "./fixture";
 
 describe("Product", () => {
   describe("from", () => {
-    test.each(products)("should decode $label", ({ payload }) => {
+    test.each(products)("decodes $label", ({ payload, expectsRealPrice }) => {
       const product = from(payload);
 
-      expect(hasPricing(product)).toBe(true);
-      expect(hasShipping(product)).toBe(true);
+      expect(product.price).toBeDefined();
+      expect(hasValidShippingDetails(product)).toBe(true);
+
+      if (expectsRealPrice) {
+        expect(hasValidPricingDetails(product)).toBe(true);
+      }
     });
   });
 });

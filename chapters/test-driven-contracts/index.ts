@@ -1,1 +1,8 @@
-export { from, hasPricing, hasShipping, Product } from "./product";
+export {
+  from,
+  hasPricing,
+  hasShipping,
+  hasValidPricingDetails,
+  hasValidShippingDetails,
+  Product,
+} from "./product";

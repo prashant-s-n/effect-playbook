@@ -55,7 +55,7 @@ export const from = (
  * small, intention-revealing API for asking whether pricing data is available
  * without repeating `BigDecimal` checks at every call site.
  */
-export const hasPricing = (product: typeof Product.Type): boolean =>
+export const hasValidPricingDetails = (product: typeof Product.Type): boolean =>
   Predicate.isNotUndefined(product.price) &&
   BigDecimal.greaterThanOrEqualTo(
     product.price.amount,
@@ -69,7 +69,7 @@ export const hasPricing = (product: typeof Product.Type): boolean =>
  * (treating it as a valid state for products that don't require shipping details)
  * or if it is present and contains all required fields (`method` and `etaDays`).
  */
-export const hasShipping = (product: typeof Product.Type): boolean => {
+export const hasValidShippingDetails = (product: typeof Product.Type): boolean => {
   if (!product.shipping) {
     return true;
   }
@@ -79,5 +79,9 @@ export const hasShipping = (product: typeof Product.Type): boolean => {
     Predicate.isNotUndefined(product.shipping.etaDays)
   );
 };
+
+export const hasPricing = hasValidPricingDetails;
+
+export const hasShipping = hasValidShippingDetails;
 
   
